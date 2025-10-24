@@ -1,169 +1,137 @@
-import { useEffect, useState } from 'react';
-import { getGenres } from '../../../_services/genres';
-import { Link } from 'react-router-dom';
+import { useEffect, useState } from "react";
+import { getGenres, deleteGenre } from "../../../_services/genres";
+import { Link, useNavigate } from "react-router-dom";
 
 export default function AdminGenres() {
   const [genres, setGenres] = useState([]);
-  const [openDropdown, setOpenDropdownId] = useState(null);
+  const [openDropdown, setOpenDropdown] = useState(null);
+  const navigate = useNavigate();
 
   useEffect(() => {
-    const fetchData = async () => {
-      const genresData = await getGenres();
-      setGenres(genresData);
-    };
-    fetchData();
+    fetchGenres();
   }, []);
 
-  const toggleDropdown = (id) => {
-    setOpenDropdownId(openDropdown === id ? null : id);
+  const fetchGenres = async () => {
+    try {
+      const result = await getGenres();
+      setGenres(result || []);
+    } catch (error) {
+      console.error("Failed to fetch genres:", error);
+    }
+  };
+
+  const handleDelete = async (id) => {
+    if (!confirm("Apakah kamu yakin ingin menghapus genre ini?")) return;
+
+    try {
+      await deleteGenre(id);
+      alert("Genre berhasil dihapus!");
+      fetchGenres();
+    } catch (error) {
+      console.error("Failed to delete genre:", error);
+      alert("Gagal menghapus genre.");
+    }
   };
 
   return (
-    <>
-      <section className="bg-gray-50 dark:bg-gray-900 p-3 sm:p-5">
-        <div className="bg-white dark:bg-gray-800 relative shadow-md sm:rounded-lg overflow-hidden">
-          {/* Header: Search + Add */}
-          <div className="flex flex-col md:flex-row items-center justify-between space-y-3 md:space-y-0 md:space-x-4 p-4">
-            <div className="w-full md:w-1/2">
-              <form className="flex items-center">
-                <label htmlFor="simple-search" className="sr-only">Search</label>
-                <div className="relative w-full">
-                  <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
-                    <svg
-                      aria-hidden="true"
-                      className="w-5 h-5 text-gray-500 dark:text-gray-400"
-                      fill="currentColor"
-                      viewBox="0 0 20 20"
-                      xmlns="http://www.w3.org/2000/svg"
-                    >
-                      <path
-                        fillRule="evenodd"
-                        d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 
-                        4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z"
-                        clipRule="evenodd"
-                      />
-                    </svg>
-                  </div>
-                  <input
-                    type="text"
-                    id="simple-search"
-                    className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg 
-                      focus:ring-indigo-500 focus:border-indigo-500 block w-full pl-10 p-2 
-                      dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white"
-                    placeholder="Search genres..."
-                  />
-                </div>
-              </form>
-            </div>
+    <section className="p-6 bg-white text-gray-800 min-h-screen">
+      <div className="flex justify-between items-center mb-6">
+        <h1 className="text-2xl font-bold text-indigo-700"> Genres</h1>
+        <Link
+          to={"/admin/genres/create"}
+          className="flex items-center justify-center text-white bg-indigo-500 hover:bg-indigo-600 focus:ring-4 focus:ring-indigo-200 font-medium rounded-lg text-sm px-4 py-2 shadow-md transition-all"
+        >
+          <svg
+            className="h-4 w-4 mr-2"
+            fill="currentColor"
+            viewBox="0 0 20 20"
+            xmlns="http://www.w3.org/2000/svg"
+            aria-hidden="true"
+          >
+            <path
+              clipRule="evenodd"
+              fillRule="evenodd"
+              d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z"
+            />
+          </svg>
+          Add Genre
+        </Link>
+      </div>
 
-            <div className="w-full md:w-auto flex flex-col md:flex-row items-stretch md:items-center justify-end md:space-x-3">
-              <Link
-                to={"/admin/genres/create"}
-                className="flex items-center justify-center text-white bg-indigo-700 hover:bg-indigo-800 
-                  focus:ring-4 focus:ring-indigo-300 font-medium rounded-lg text-sm px-4 py-2 
-                  dark:bg-indigo-600 dark:hover:bg-indigo-700 dark:focus:ring-indigo-800"
-              >
-                <svg
-                  className="h-3.5 w-3.5 mr-2"
-                  fill="currentColor"
-                  viewBox="0 0 20 20"
-                  xmlns="http://www.w3.org/2000/svg"
+      <div className="overflow-x-auto bg-gray-50 rounded-lg shadow">
+        <table className="w-full border-collapse text-sm">
+          <thead className="bg-indigo-100 text-indigo-800">
+            <tr>
+              <th className="border-b border-indigo-200 px-4 py-3 text-left">#</th>
+              <th className="border-b border-indigo-200 px-4 py-3 text-left">Name</th>
+              <th className="border-b border-indigo-200 px-4 py-3 text-left">Description</th>
+              <th className="border-b border-indigo-200 px-4 py-3 text-center w-24">
+                Action
+              </th>
+            </tr>
+          </thead>
+          <tbody>
+            {genres.length > 0 ? (
+              genres.map((genre, index) => (
+                <tr
+                  key={genre.id}
+                  className="hover:bg-indigo-50 transition-colors"
                 >
-                  <path
-                    clipRule="evenodd"
-                    fillRule="evenodd"
-                    d="M10 3a1 1 0 011 1v5h5a1 1 0 
-                    110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 
-                    0 110-2h5V4a1 1 0 011-1z"
-                  />
-                </svg>
-                Add Genre
-              </Link>
-            </div>
-          </div>
+                  <td className="border-b px-4 py-3">{index + 1}</td>
+                  <td className="border-b px-4 py-3 font-medium text-gray-700">
+                    {genre.name}
+                  </td>
+                  <td className="border-b px-4 py-3 text-gray-600">
+                    {genre.description}
+                  </td>
+                  <td className="border-b px-4 py-3 text-center relative">
+                    <button
+                      onClick={() =>
+                        setOpenDropdown(openDropdown === genre.id ? null : genre.id)
+                      }
+                      className="p-1 text-gray-600 hover:text-indigo-600"
+                    >
+                      ⋮
+                    </button>
 
-          {/* Table */}
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm text-left text-gray-500 dark:text-gray-400">
-              <thead className="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
-                <tr>
-                  <th scope="col" className="px-4 py-3">Name</th>
-                  <th scope="col" className="px-4 py-3">Description</th>
-                  <th scope="col" className="px-4 py-3"><span className="sr-only">Actions</span></th>
+                    {openDropdown === genre.id && (
+                      <div className="absolute right-0 mt-2 w-32 bg-white border border-gray-200 rounded-lg shadow-lg z-10">
+                        <ul className="py-1 text-sm text-gray-700">
+                          <li>
+                            <button
+                              onClick={() => navigate(`/admin/genres/edit/${genre.id}`)}
+                              className="block w-full text-left px-4 py-2 hover:bg-indigo-50"
+                            >
+                              Edit
+                            </button>
+                          </li>
+                          <li>
+                            <button
+                              onClick={() => handleDelete(genre.id)}
+                              className="block w-full text-left px-4 py-2 text-red-600 hover:bg-red-50"
+                            >
+                              Delete
+                            </button>
+                          </li>
+                        </ul>
+                      </div>
+                    )}
+                  </td>
                 </tr>
-              </thead>
-              <tbody>
-                {genres.length > 0 ? (
-                  genres.map((genre) => (
-                    <tr key={genre.id} className="border-b dark:border-gray-700">
-                      <th scope="row" className="px-4 py-3 font-medium text-gray-900 whitespace-nowrap dark:text-white">
-                        {genre.name}
-                      </th>
-                      <td className="px-4 py-3">{genre.description || '-'}</td>
-                      <td className="px-4 py-3 flex items-center justify-end relative">
-                        <button
-                          onClick={() => toggleDropdown(genre.id)}
-                          className="inline-flex items-center p-0.5 text-sm font-medium text-center 
-                            text-gray-500 hover:text-gray-800 rounded-lg focus:outline-none 
-                            dark:text-gray-400 dark:hover:text-gray-100"
-                          type="button"
-                        >
-                          <svg
-                            className="w-5 h-5"
-                            aria-hidden="true"
-                            fill="currentColor"
-                            viewBox="0 0 20 20"
-                            xmlns="http://www.w3.org/2000/svg"
-                          >
-                            <path d="M6 10a2 2 0 11-4 0 2 
-                              2 0 014 0zM12 10a2 2 0 
-                              11-4 0 2 2 0 014 0zM16 
-                              12a2 2 0 100-4 2 2 0 000 
-                              4z" />
-                          </svg>
-                        </button>
-                        {openDropdown === genre.id && (
-                          <div
-                            className="absolute right-0 mt-2 z-10 w-44 bg-white rounded divide-y divide-gray-100 shadow 
-                              dark:bg-gray-700 dark:divide-gray-600"
-                            style={{ top: "100%", right: "0" }}
-                          >
-                            <ul className="py-1 text-sm text-gray-700 dark:text-gray-200">
-                              <li>
-                                <Link
-                                  to={`/admin/genres/edit/${genre.id}`}
-                                  className="block py-2 px-4 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white"
-                                >
-                                  Edit
-                                </Link>
-                              </li>
-                            </ul>
-                            <div className="py-1">
-                              <button
-                                onClick={() => alert('Delete genre feature not yet implemented')}
-                                className="block py-2 px-4 text-sm text-gray-700 hover:bg-gray-100 
-                                  dark:hover:bg-gray-600 dark:text-gray-200 dark:hover:text-white"
-                              >
-                                Delete
-                              </button>
-                            </div>
-                          </div>
-                        )}
-                      </td>
-                    </tr>
-                  ))
-                ) : (
-                  <tr>
-                    <td colSpan="3" className="text-center py-4 text-gray-500 dark:text-gray-400">
-                      Data Tidak Ditemukan
-                    </td>
-                  </tr>
-                )}
-              </tbody>
-            </table>
-          </div>
-        </div>
-      </section>
-    </>
+              ))
+            ) : (
+              <tr>
+                <td
+                  colSpan="4"
+                  className="text-center p-6 text-gray-500 bg-white"
+                >
+                  No genres found.
+                </td>
+              </tr>
+            )}
+          </tbody>
+        </table>
+      </div>
+    </section>
   );
 }
