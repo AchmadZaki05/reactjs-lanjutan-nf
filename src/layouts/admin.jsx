@@ -1,6 +1,35 @@
-import { Link, Outlet } from "react-router-dom";
+import { Link, Outlet, useNavigate } from "react-router-dom";
+import { logout, useDecodeToken } from "../_services/auth";
+import { useEffect } from "react";
 
 export default function AdminLayout() {
+  const navigate = useNavigate();
+const token = localStorage.getItem("accessToken");
+const userInfo = JSON.parse(localStorage.getItem("userInfo"));
+const decodedData = useDecodeToken(token);
+
+useEffect(() => {
+  if (!token || !decodedData || !decodedData.success) {
+    navigate("/login");
+    return;
+  }
+
+  const role = userInfo?.role;
+  if (!role || role !== "admin") {
+    navigate("/");
+  }
+}, [token, decodedData, navigate, userInfo?.role]);
+
+
+const handleLogout = async () => {
+  if (token) {
+    await logout({ token });
+    localStorage.removeItem ("userInfo");
+    navigate("/login");
+  }
+};
+
+
   return (
     <>
       <div className="antialiased bg-gray-50 dark:bg-gray-900">
@@ -76,7 +105,11 @@ export default function AdminLayout() {
                   ></path>
                 </svg>
               </button>
-
+              <Link to={"/"}
+                className="text-gray-800 dark:text-white hover:bg-gray-50 focus:ring-4 focus:ring-gray-300 font-medium rounded-lg text-sm px-4 lg:px-5 py-2 lg:py-2.5 mr-2 dark:hover:bg-gray-700 focus:outline-none dark:focus:ring-gray-800"
+              >
+                {userInfo.email}
+              </Link>
               <button
                 type="button"
                 className="flex mx-3 text-sm bg-gray-800 rounded-full md:mr-0 focus:ring-4 focus:ring-gray-300 dark:focus:ring-gray-600"
@@ -149,11 +182,11 @@ export default function AdminLayout() {
               </li>
               <li>
                 <Link to={"/admin/users"}
-                  className="flex items-center p-2 text-base font-medium text-gray-900 rounded-lg transition duration-75 hover:bg-gray-100 dark:hover:bg-gray-700 dark:text-white group"
+                  className="flex items-center p-2 text-base font-medium text-white-900 rounded-lg transition duration-75 hover:bg-gray-100 dark:hover:bg-gray-700 dark:text-white group"
                 >
                   <svg
                     aria-hidden="true"
-                    className="flex-shrink-0 w-6 h-6 text-gray-500 transition duration-75 dark:text-gray-400 group-hover:text-gray-900 dark:group-hover:text-white"
+                    className="flex-shrink-0 w-6 h-6 text-white-500 transition duration-75 dark:text-gray-400 group-hover:text-gray-900 dark:group-hover:text-white"
                     fill="currentColor"
                     viewBox="0 0 20 20"
                     xmlns="http://www.w3.org/2000/svg"
@@ -170,7 +203,7 @@ export default function AdminLayout() {
               </li>
               <li>
                 <Link to={"/admin/authors"}
-                  className="flex items-center p-2 text-base font-medium text-gray-900 rounded-lg transition duration-75 hover:bg-gray-100 dark:hover:bg-gray-700 dark:text-white group"
+                  className="flex items-center p-2 text-base font-medium text-white-900 rounded-lg transition duration-75 hover:bg-gray-100 dark:hover:bg-gray-700 dark:text-white group"
                 >
                   <svg
                     aria-hidden="true"
@@ -273,6 +306,26 @@ export default function AdminLayout() {
                   </svg>
                   <span className="ml-3">Help</span>
                 </Link>
+              </li>
+                            <li>
+                <button 
+                onClick={handleLogout}
+                  className="flex items-center p-2 text-base font-medium text-white bg-red-600 rounded-lg transition duration-75 hover:bg-red-700 group"
+                >
+                    <svg
+                aria-hidden="true"
+                className="flex-shrink-0 w-6 h-6 text-white-500 transition duration-75 group-hover:text-white"
+                fill="currentColor"
+                viewBox="0 0 20 20"
+                xmlns="http://www.w3.org/2000/svg">
+                  <path
+                    fillRule="evenodd"
+                d="M3 4.5A1.5 1.5 0 0 1 4.5 3h6a1.5 1.5 0 0 1 1.5 1.5v3a.5.5 0 0 1-1 0v-3a.5.5 0 0 0-.5-.5h-6a.5.5 0 0 0-.5.5v11a.5.5 0 0 0 .5.5h6a.5.5 0 0 0 .5-.5v-3a.5.5 0 0 1 1 0v3A1.5 1.5 0 0 1 10.5 17h-6A1.5 1.5 0 0 1 3 15.5v-11Zm11.854 4.646a.5.5 0 0 0-.708.708L15.293 11H8.5a.5.5 0 0 0 0 1h6.793l-1.147 1.146a.5.5 0 0 0 .708.708l2-2a.5.5 0 0 0 0-.708l-2-2Z"
+                clipRule="evenodd"
+                />
+                </svg>
+                  <span className="ml-3">Logout</span>
+                </button>
               </li>
             </ul>
           </div>

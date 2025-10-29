@@ -1,12 +1,16 @@
 import { useEffect, useState } from "react";
 import { showBook } from "../../../_services/books";
-import { useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { bookImageStorage } from "../../../_api";
+import { createTransaction } from "../../../_services/transactions";
 
 export default function ShowBook() {
 
   const {id} = useParams()
   const [book, setBook] = useState({});
+  const [quantity, setQuantity] = useState (1);
+  const navigate = useNavigate();
+const accessToken = localStorage.getItem("accessToken")
 
   useEffect(() => {
     const fetchData = async () =>{
@@ -19,6 +23,29 @@ export default function ShowBook() {
 
     fetchData()
   }, [id])
+
+    const handleSubmit = async (e) => {
+  e.preventDefault(); // mencegah reload form
+
+  
+    if (!accessToken) {
+      navigate("/login");
+      return;
+    }
+
+  try {
+    const payload = {
+      book_id: id,       // id buku yang dibeli
+      quantity: quantity // jumlah pembelian
+    };
+
+    await createTransaction(payload); // kirim data ke API
+    alert("Pembelian berhasil!");
+  } catch (error) {
+    console.log(error);
+    throw error;
+  }
+}
 
   return (
     <>
@@ -112,34 +139,40 @@ export default function ShowBook() {
                 </div>
               </div>
 
-              <div className="mt-6 sm:gap-4 sm:items-center sm:flex sm:mt-8">
-                <a
-                  href="#"
-                  title=""
-                  class="text-white mt-4 sm:mt-0 bg-primary-700 hover:bg-primary-800 focus:ring-4 focus:ring-primary-300 font-medium rounded-lg text-sm px-5 py-2.5 dark:bg-primary-600 dark:hover:bg-primary-700 focus:outline-none dark:focus:ring-primary-800 flex items-center justify-center"
-                  role="button"
-                >
-                  <svg
-                    class="w-5 h-5 -ms-2 me-2"
-                    aria-hidden="true"
-                    xmlns="http://www.w3.org/2000/svg"
-                    width="24"
-                    height="24"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      stroke="currentColor"
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
-                      stroke-width="2"
-                      d="M4 4h1.5L8 16m0 0h8m-8 0a2 2 0 1 0 0 4 2 2 0 0 0 0-4Zm8 0a2 2 0 1 0 0 4 2 2 0 0 0 0-4Zm.75-3H7.5M11 7H6.312M17 4v6m-3-3h6"
-                    />
-                  </svg>
-                  Add to cart
-                </a>
-              </div>
+               <div className="mt-6 sm:gap-4 sm:items-center sm:flex sm:mt-8">
+      <form
+        onSubmit={handleSubmit}
+        className="mt-6 sm:mt-8 space-y-4"
+      >
+        <div>
+          <label
+            htmlFor="quantity"
+            className="block text-sm font-medium text-gray-700 dark:text-white"
+          >
+            Jumlah
+          </label>
+          <input
+            type="number"
+            id="quantity"
+            name="quantity"
+            min={1}
+            value={quantity}
+            onChange={(e) => setQuantity(e.target.value)}
+            className="mt-1 block w-24 px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+          />
+        </div>
+        
+            
 
+          <button
+            type="summit"
+            className="text-white mt-4 sm:mt-0 bg-blue-600 hover:bg-blue-700 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 focus:outline-none flex items-center justify-center"
+            >
+            Buy
+          </button>
+          </form>
+          </div>
+          
               <hr className="my-6 md:my-8 border-gray-200 dark:border-gray-800" />
 
               <p class="mb-6 text-gray-500 dark:text-gray-400">
